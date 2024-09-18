@@ -1,0 +1,507 @@
+﻿@using Microsoft.AspNetCore.Mvc.Localization;
+@using System.Globalization
+@inject IViewLocalizer Localizer;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+    <title>Tidbeat</title>
+    <!--<link rel="icon" type="image/x-icon" href="assets/favicon.ico" />-->
+    <link runat="server" rel="shortcut icon" href="~/favicon.ico" type="image/x-icon" />
+    <link runat="server" rel="icon" href="~/favicon.ico" type="image/ico" />    
+    <!-- Bootstrap icons-->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css" rel="stylesheet" />
+    <!-- Google fonts-->
+    <link rel="preconnect" href="https://fonts.gstatic.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,600;1,600&amp;display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Mulish:ital,wght@0,300;0,500;0,600;0,700;1,300;1,500;1,600;1,700&amp;display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,400;1,400&amp;display=swap" rel="stylesheet" />
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Poppins" />
+    <link rel="stylesheet" type="text/css" href="/css/conversation.css" />
+    <!-- Core theme CSS (includes Bootstrap)-->
+
+    <link rel="stylesheet" href="~/css/theme.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/TestTemplate.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/bootstrap.custom.min.css" asp-append-version="true" />
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.min.js"></script>
+    <script src="/lib/tinymce/tinymce.min.js" referrerpolicy="origin"></script>
+    <script>
+        tinymce.init({
+            selector: '#postcreate, #postedit',
+            setup: function (editor) {
+                var maxChars = 1500;
+
+                editor.on('keyup', function (event) {
+                    var content = editor.getContent({ format: 'text' });
+                    var strippedContent = content.replace(/<[^>]+>/g, '');
+                    var charCount = strippedContent.length;
+                    if (charCount > maxChars) {
+                        var bookmark = editor.selection.getBookmark(2, true);
+                        var trimmedContent = strippedContent.substring(0, maxChars);
+                        editor.setContent(trimmedContent);
+                        editor.selection.moveToBookmark(bookmark);
+                        var warningMsg = 'O limite de carateres (' + maxChars + ') foi excedido.';
+                        editor.notificationManager.open({
+                            text: warningMsg,
+                            type: 'warning',
+                        });
+                    }
+                });
+            }
+        });
+        tinymce.init({
+            selector: '#commentcreate',
+        });
+    </script>
+
+</head>
+<body>
+    <!-- Navigation-->
+    <nav class="navbar navbar-expand-lg navbar-light fixed-top shadow-sm" id="mainNav">
+        <div class="container-fluid">
+            <a href="/" class="navbar-brand fw-bold d-flex flex-row">
+                <img src="~/images/Logo.png" width="60" height="55" />
+                <h1 class="text-primary mt-1">Tidbeat</h1>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+                Menu
+                <i class="bi-list"></i>
+            </button>
+            <div class="collapse navbar-collapse d-lg-block pb-2 pb-lg-0" id="navbarResponsive">
+                <div class="d-flex flex-column flex-lg-row w-100 align-items-center">
+                    <div class="d-flex flex-row w-100 justify-content-between justify-content-sm-center justify-content-lg-start">
+                        <div class="d-flex flex-column flex-sm-row">
+                            <ul class="navbar-nav me-2 my-0">
+                                <li class="nav-item me-1 rounded text-center bg-white">
+                                    <a class="nav-link text-black text-nowrap" href="@Url.Action("Index", "Posts")">@Localizer["recommended_posts"]</a>
+                                </li>
+                            </ul>
+                            <div class="dropdown me-sm-3" style="background-color: white; color: black;">
+                                <button class="btn dropdown-toggle py-2 border-0" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="background-color: white; color: black;">
+                                    @Localizer["other_contents"]
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="/Songs">@Localizer["songs"]</a></li>
+                                    <li><a class="dropdown-item" href="/Bands">@Localizer["bands"]</a></li>
+                                     <li><a class="dropdown-item" href="/Users">@Localizer["users"]</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="d-flex flex-row d-none d-xl-block">
+                            <!-- Search bar with dropdown menu -->
+                            <div class="input-group d-lg-flex flex-row flex-nowrap">
+                                <div class="dropdown">
+                                    
+                                    <div class="btn border-light-grey border-end-0 dropdown-toggle d-flex align-items-center" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <span id="searchTypeText" class="me-1">@Localizer["filter"]:</span>
+                                        <div id="" class="change-filter-icon bi bi-music-note"></div>
+                                    </div>
+                                    <ul class="dropdown-menu" style="min-width: 60px">
+                                        <li><a class="dropdown-item d-flex" href="#" id="search-songs"><div class="bi bi-music-note me-1"></div><div>@Localizer["songs"]</div></a></li>
+                                        <li><a class="dropdown-item d-flex" href="#" id="search-bands"><div class="bi bi-mic-fill me-1"></div><div>@Localizer["bands"]</div></a></li>
+                                        <li><a class="dropdown-item d-flex" href="#" id="search-users"><div class="bi bi-person-fill me-1"></div><div>@Localizer["users"]</div></a></li>
+                                    </ul>
+                                </div>
+                                <div class="form-outline">
+                                    <input type="search" id="searchInput" class="form-control" placeholder="@Localizer["search"]" />
+                                </div>
+                                <button type="button" id="searchButton" class="btn btn-primary">
+                                    <img class="no-padding" src="~/images/SearchIcon.png" height="26" width="30" />
+                                </button>
+                            </div>
+                        </div>
+                        <div class="d-flex flex-column flex-sm-row ms-lg-auto align-items-end align-items-sm-center">
+                            @if(User.Identity.IsAuthenticated) {
+                                <div class="position-relative">
+                                    <a class="btn bi bi-chat-right-text fs-4 py-0" asp-controller="Conversations" asp-action="Index"></a>
+                                    <div class="position-absolute end-0 top-0 mt-3 me-1">
+                                        <div id="navbar-unread-messages-full-counter" class="position-relative d-none">
+                                            <div class="bi bi-circle-fill text-danger fs-5"></div>
+                                            <div id="navbar-unread-messages-counter" class="fs-7 text-white position-absolute top-0" style="margin-top: 6px; margin-left: 5px;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                            <div class="d-flex justify-content-center">
+                                <partial name="_LoginPartial" />
+                                <form asp-controller="Language" asp-action="SetLanguage" method="post" id="languageForm" class="d-flex align-self-center ms-auto">
+                                    <div class="dropdown">
+                                        <div class="btn border-end-0 dropdown-toggle d-flex align-items-center p-1 me-3" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <img id="changeLanguageImage" src="~/images/pt.svg" />
+                                        </div>
+                                        <ul class="dropdown-menu me-2" style="min-width: 50px">
+                                            <li><a class="dropdown-item pe-0 ps-1 d-flex" href="#" id="language-pt-button"><img src="~/images/pt.svg" width="20px" class="me-1" />PT</a></li>
+                                            <li><a class="dropdown-item pe-0 ps-1 d-flex" href="#" id="language-us-button"><img src="~/images/us.svg" width="20px" class="me-1" />US</a></li>
+                                        </ul>
+                                        <input id="languageCodeInput" name="language" hidden />
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex flex-row d-block d-lg-none">
+                        <!--
+                        <div class="btn btn-primary">
+                            <img src="~/images/FilterIcon.png" height="26" width="31" />
+                        </div>
+                        -->
+                        <!-- Search bar with dropdown menu -->
+                        <div class="input-group d-none d-sm-flex flex-row flex-nowrap">
+                            <div class="dropdown">
+                                <div class="btn border-light-grey border-end-0 dropdown-toggle d-flex align-items-center" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <span id="searchTypeText" class="me-1">@Localizer["filter"]:</span>
+                                    <div id="" class="change-filter-icon bi bi-music-note"></div>
+                                </div>
+                                <ul class="dropdown-menu" style="min-width: 60px">
+                                    <li><a class="dropdown-item d-flex" href="#" id="search-songs2"><div class="bi bi-music-note me-1"></div><div>@Localizer["songs"]</div></a></li>
+                                    <li><a class="dropdown-item d-flex" href="#" id="search-bands2"><div class="bi bi-mic-fill me-1"></div><div>@Localizer["bands"]</div></a></li>
+                                    <li><a class="dropdown-item d-flex" href="#" id="search-users2"><div class="bi bi-person-fill me-1"></div><div>@Localizer["users"]</div></a></li>
+                                </ul>
+                            </div>
+                            <div class="form-outline">
+                                <input type="search" id="searchInput2" class="form-control" placeholder="@Localizer["search"]" />
+                            </div>
+                            <button type="button" id="searchButton2" class="btn btn-primary">
+                                <img class="no-padding" src="~/images/SearchIcon.png" height="26" width="30" />
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <div class="row filldiv mx-0">
+        <main role="main" class="text-center">
+            @RenderBody()
+        </main>
+        <!--<aside class="col-2 border rounded bg-primary">
+            <h1 class="text-white text-center">Tidbeat</h1>
+            <h5 class="text-white">Pessoas que segues:</h5>
+            <div>
+                <div class="bg-white border border-primary rounded-start d-flex flex-row align-items-center mt-2">
+                    <img class="p-1 rounded-1" src="~/images/UnknownUser.jpg" width="60" height="55"/>
+                    <div>Joana Dias</div>
+                    <button class="btn btn-primary rounded-pill px-3 mb-2 mb-lg-0 ms-auto me-1" data-bs-toggle="modal" data-bs-target="#feedbackModal">
+                        <span class="d-flex align-items-center">
+                            <i class="bi-chat-text-fill me-2"></i>
+                        </span>
+                    </button>
+                </div>
+                <div class="bg-white border border-primary rounded-start d-flex flex-row align-items-center mt-2">
+                    <img class="p-1 rounded-1" src="~/images/UnknownUser.jpg" width="60" height="55"/>
+                    <div>André Maria</div>
+                    <button class="btn btn-primary rounded-pill px-3 mb-2 mb-lg-0 ms-auto me-1" data-bs-toggle="modal" data-bs-target="#feedbackModal">
+                        <span class="d-flex align-items-center">
+                            <i class="bi-chat-text-fill me-2"></i>
+                        </span>
+                    </button>
+                </div>
+                <div class="bg-white border border-primary rounded-start d-flex flex-row align-items-center mt-2">
+                    <img class="p-1 rounded-1 me-1" src="~/images/UnknownUser.jpg" width="60" height="55" />
+                    <div>Rafael Lisboa</div>
+                    <button class="btn btn-primary rounded-pill px-3 mb-2 mb-lg-0 ms-auto me-1" data-bs-toggle="modal" data-bs-target="#feedbackModal">
+                        <span class="d-flex align-items-center">
+                            <i class="bi-chat-text-fill me-2"></i>
+                        </span>
+                    </button>
+                </div>
+                <div class="bg-white border border-primary rounded-start d-flex flex-row align-items-center mt-2">
+                    <img class="p-1 rounded-1" src="~/images/UnknownUser.jpg" width="60" height="55" />
+                    <div>Afonso Cunha</div>
+                    <button class="btn btn-primary rounded-pill px-3 mb-2 mb-lg-0 ms-auto me-1" data-bs-toggle="modal" data-bs-target="#feedbackModal">
+                        <span class="d-flex align-items-center">
+                            <i class="bi-chat-text-fill me-2"></i>
+                        </span>
+                    </button>
+                </div>
+                <div class="bg-white border border-primary rounded-start d-flex flex-row align-items-center mt-2">
+                    <img class="p-1 rounded-1" src="~/images/UnknownUser.jpg" width="60" height="55" />
+                    <div>Pedro Semeano</div>
+                    <button class="btn btn-primary rounded-pill px-3 mb-2 mb-lg-0 ms-auto me-1" data-bs-toggle="modal" data-bs-target="#feedbackModal">
+                        <span class="d-flex align-items-center">
+                            <i class="bi-chat-text-fill me-2"></i>
+                        </span>
+                    </button>
+                </div>
+            </div>
+        </aside> -->
+    </div>
+    <!-- Footer
+    <footer class="bg-black text-center py-5">
+        <div class="container px-5">
+            <div class="text-white-50 small">
+                <div class="mb-2">&copy; Your Website 2022. All Rights Reserved.</div>
+                <a href="#!">Privacy</a>
+                <span class="mx-1">&middot;</span>
+                <a href="#!">Terms</a>
+                <span class="mx-1">&middot;</span>
+                <a href="#!">FAQ</a>
+            </div>
+        </div>
+    </footer> -->
+    <!-- Feedback Modal-->
+    <div class="modal fade" id="feedbackModal" tabindex="-1" aria-labelledby="feedbackModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-gradient-primary-to-secondary p-4">
+                    <h5 class="modal-title font-alt text-white" id="feedbackModalLabel">Send feedback</h5>
+                    <button class="btn-close btn-close-white" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body border-0 p-4">
+                    <!-- * * * * * * * * * * * * * * *-->
+                    <!-- * * SB Forms Contact Form * *-->
+                    <!-- * * * * * * * * * * * * * * *-->
+                    <!-- This form is pre-integrated with SB Forms.-->
+                    <!-- To make this form functional, sign up at-->
+                    <!-- https://startbootstrap.com/solution/contact-forms-->
+                    <!-- to get an API token!-->
+                    <form id="contactForm" data-sb-form-api-token="API_TOKEN">
+                        <!-- Name input-->
+                        <div class="form-floating mb-3">
+                            <input class="form-control" id="name" type="text" placeholder="Enter your name..." data-sb-validations="required" />
+                            <label for="name">Full name</label>
+                            <div class="invalid-feedback" data-sb-feedback="name:required">A name is required.</div>
+                        </div>
+                        <!-- Email address input-->
+                        <div class="form-floating mb-3">
+                            <input class="form-control" id="email" type="email" placeholder="name@example.com" data-sb-validations="required,email" />
+                            <label for="email">Email address</label>
+                            <div class="invalid-feedback" data-sb-feedback="email:required">An email is required.</div>
+                            <div class="invalid-feedback" data-sb-feedback="email:email">Email is not valid.</div>
+                        </div>
+                        <!-- Phone number input-->
+                        <div class="form-floating mb-3">
+                            <input class="form-control" id="phone" type="tel" placeholder="(123) 456-7890" data-sb-validations="required" />
+                            <label for="phone">Phone number</label>
+                            <div class="invalid-feedback" data-sb-feedback="phone:required">A phone number is required.</div>
+                        </div>
+                        <!-- Message input-->
+                        <div class="form-floating mb-3">
+                            <textarea class="form-control" id="message" type="text" placeholder="Enter your message here..." style="height: 10rem" data-sb-validations="required"></textarea>
+                            <label for="message">Message</label>
+                            <div class="invalid-feedback" data-sb-feedback="message:required">A message is required.</div>
+                        </div>
+                        <!-- Submit success message-->
+                        <!---->
+                        <!-- This is what your users will see when the form-->
+                        <!-- has successfully submitted-->
+                        <div class="d-none" id="submitSuccessMessage">
+                            <div class="text-center mb-3">
+                                <div class="fw-bolder">Form submission successful!</div>
+                                To activate this form, sign up at
+                                <br />
+                                <a href="https://startbootstrap.com/solution/contact-forms">https://startbootstrap.com/solution/contact-forms</a>
+                            </div>
+                        </div>
+                        <!-- Submit error message-->
+                        <!---->
+                        <!-- This is what your users will see when there is-->
+                        <!-- an error submitting the form-->
+                        <div class="d-none" id="submitErrorMessage"><div class="text-center text-danger mb-3">Error sending message!</div></div>
+                        <!-- Submit Button-->
+                        <div class="d-grid"><button class="btn btn-primary rounded-pill btn-lg disabled" id="submitButton" type="submit">Submit</button></div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        function getCookie(name) {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.startsWith(name + '=')) {
+                    return cookie.substring(name.length + 1);
+                }
+            }
+            return null;
+        }
+
+        const cultureCookie = getCookie('.AspNetCore.Culture');
+        var currentLanguage = null;
+        if (cultureCookie) {
+            currentLanguage = decodeURIComponent(cultureCookie).split('|')[0].split('=')[1];
+        }
+
+        const changeLanguageImage = document.getElementById('changeLanguageImage');
+        if (currentLanguage === "pt-PT") {
+            changeLanguageImage.src = "/images/pt.svg";
+        } else if (currentLanguage === "en-US") {
+            changeLanguageImage.src = "/images/us.svg";
+        }
+
+        function findAndSubmitForm(language) {
+            let languageCodeInput = document.getElementById('languageCodeInput');
+            languageCodeInput.value = language;
+
+            let languageForm = document.getElementById('languageForm');
+            languageForm.submit();
+        }
+
+        document.getElementById('language-pt-button').onclick = function () {
+            findAndSubmitForm("pt-PT");
+        }
+
+        document.getElementById('language-us-button').onclick = function () {
+            findAndSubmitForm("en-US");
+        }
+    </script>
+    <script>
+        // Used to toggle the password visibility in different screens
+        function togglePasswordVisibility(inputName, eyeName) {
+            var x = document.getElementById(inputName);
+            var passwordEye = document.getElementById(eyeName);
+            if (x.type === "password") {
+                x.type = "text";
+                passwordEye.classList.remove("bi-eye");
+                passwordEye.classList.add("bi-eye-slash");
+            } else {
+                passwordEye.classList.remove("bi-eye-slash");
+                passwordEye.classList.add("bi-eye");
+                x.type = "password";
+            }
+        }
+    </script>
+    <!-- Bootstrap core JS-->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.min.js"></script>
+    <!-- Core theme JS-->
+    <!--<script src="js/scripts.js"></script>-->
+    <!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *-->
+    <!-- * *                               SB Forms JS                               * *-->
+    <!-- * * Activate your form at https://startbootstrap.com/solution/contact-forms * *-->
+    <!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *-->
+    <script src="https://cdn.startbootstrap.com/sb-forms-latest.js"></script>
+
+    <script src="https://apis.google.com/js/platform.js" async defer></script>
+    @await RenderSectionAsync("Scripts", required: false)
+
+    <!-- This scripts implements all the searchbar dropdown menu logic-->
+    <script>
+        var searchButton = document.getElementById('searchButton');
+        var searchButton2 = document.getElementById('searchButton2');
+        var searchInput = document.getElementById('searchInput');
+        var searchInput2 = document.getElementById('searchInput2');
+        var searchType = 'songs'; // Default to searching for songs
+        var searchTypeText = document.getElementById('searchTypeText'); // Get the search type text element
+
+        function changeSong(e) {
+            e.preventDefault(); // Prevent the default behavior of the anchor element
+            var changeFilterIcons = document.getElementsByClassName('change-filter-icon');
+            var changeFilterIcon1 = changeFilterIcons[0];
+            var changeFilterIcon2 = changeFilterIcons[1];
+            changeFilterIcon1.classList.remove('bi-person-fill');
+            changeFilterIcon1.classList.add('bi-music-note');
+            changeFilterIcon2.classList.remove('bi-person-fill');
+            changeFilterIcon2.classList.add('bi-music-note');
+            searchType = 'songs';
+        }
+
+        function changeBand(e) {
+            e.preventDefault(); // Prevent the default behavior of the anchor element
+            var changeFilterIcons = document.getElementsByClassName('change-filter-icon');
+            var changeFilterIcon1 = changeFilterIcons[0];
+            var changeFilterIcon2 = changeFilterIcons[1];
+            changeFilterIcon1.classList.remove('bi-music-note');
+            changeFilterIcon1.classList.add('bi-mic-fill');
+            changeFilterIcon2.classList.remove('bi-music-note');
+            changeFilterIcon2.classList.add('bi-mic-fill');
+            searchType = 'bands';
+        }
+
+        function changeUser(e) {
+            e.preventDefault();
+            var changeFilterIcons = document.getElementsByClassName('change-filter-icon');
+            var changeFilterIcon1 = changeFilterIcons[0];
+            var changeFilterIcon2 = changeFilterIcons[1];
+            changeFilterIcon1.classList.remove('bi-music-note');
+            changeFilterIcon1.classList.add('bi-person-fill');
+            changeFilterIcon2.classList.remove('bi-music-note');
+            changeFilterIcon2.classList.add('bi-person-fill');
+            searchType = 'users';
+        }
+
+        document.getElementById('search-songs').addEventListener('click', changeSong);
+        document.getElementById('search-songs2').addEventListener('click', changeSong);
+
+        document.getElementById('search-bands').addEventListener('click', changeBand);
+        document.getElementById('search-bands2').addEventListener('click', changeBand);
+
+        document.getElementById('search-users').addEventListener('click', changeUser);
+        document.getElementById('search-users2').addEventListener('click', changeUser);
+
+        function onClickSearch(theSearchInput) {
+            var searchQuery = theSearchInput.value.trim();
+            console.log("search clicked.");
+            if (searchQuery !== '') {
+                var newUrl = "";
+                if (searchType === 'users') {
+                    console.log("users");
+                    var newUrl = '/' + searchType + '?name=' + encodeURIComponent(searchQuery) + '&country=';
+                } else {
+                    newUrl = '/' + searchType + '?searchKey=' + encodeURIComponent(searchQuery) + '&gener=&band=&album=&yearStart=&yearEnd=';
+                }
+                window.location.href = newUrl;
+            }
+        }
+
+        searchButton.addEventListener('click', () => onClickSearch(searchInput));
+        searchButton2.addEventListener('click', () => onClickSearch(searchInput2));
+
+        searchInput.addEventListener("keypress", function (event) {
+            // If the user presses the "Enter" key on the keyboard
+            if (event.key === "Enter") {
+                // Cancel the default action, if needed
+                event.preventDefault();
+                // Trigger the button element with a click
+                document.getElementById('searchButton').click();
+            }
+        });
+        
+        searchInput2.addEventListener("keypress", function (event) {
+            // If the user presses the "Enter" key on the keyboard
+            if (event.key === "Enter") {
+                // Cancel the default action, if needed
+                event.preventDefault();
+                // Trigger the button element with a click
+                document.getElementById('searchButton2').click();
+            }
+        });
+
+        window.addEventListener('load', function() {
+            function getUnreadMessageCount() {
+                $.ajax({
+                    url: '/Conversations/GetMessagesNotReadAmount',
+                    type: 'GET',
+                    success: function (result) {
+                        let unreadMessagesCounter = document.getElementById('navbar-unread-messages-counter');
+                        if (result == 0) {
+                            return;
+                        }
+                        let shownResult = result;
+                        if (result > 9) {
+                            shownResult = '9+';
+                            document.getElementById('navbar-unread-messages-counter').style.marginLeft = "4px";
+                        } else {
+                            document.getElementById('navbar-unread-messages-counter').style.marginLeft = "6px";
+                        }
+                        unreadMessagesCounter.textContent = shownResult;
+                        document.getElementById('navbar-unread-messages-full-counter').classList.remove('d-none');
+                        
+                    },
+                    error: function (xhr, status, error) {
+                        console.log('Error: ' + error);
+                    }
+                });
+            }
+            getUnreadMessageCount();
+        });
+    </script>
+</body>
+</html>

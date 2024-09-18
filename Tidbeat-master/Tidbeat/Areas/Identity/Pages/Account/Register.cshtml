@@ -1,0 +1,355 @@
+﻿@page
+@using Microsoft.AspNetCore.Mvc.Localization;
+@inject IViewLocalizer Localizer;
+@model RegisterModel
+@{
+    ViewData["Title"] = "Register";
+    List<SelectListItem> genders = new()
+    {
+        new SelectListItem {Text = Localizer["male"].Value, Value="male"},
+        new SelectListItem {Text = Localizer["female"].Value, Value="female"},
+        new SelectListItem {Text = Localizer["non_binary"].Value, Value="non_binary"}
+    };
+
+
+}
+
+<style>
+    .first-phase {
+        display: inherit;
+    }
+
+    .second-phase {
+        display: none;
+    }
+</style>
+<div class="text-center d-flex flex-column temporary-margin">
+    <div class="display-4 text-primary">@Localizer["register_in_tidbeat"]</div>
+    <form class="mt-3 mx-auto w-lg-30 w-sm-60" id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <div class="text-danger" id="Danger">
+            @if (ModelState.ContainsKey("Danger"))
+            {
+                @ViewData.ModelState["Danger"].Errors.FirstOrDefault().ErrorMessage.ToString()
+                ;
+            }
+            </div>
+        <label asp-for="Input.Email" class="first-phase form-label text-primary mb-0 ">@Localizer["email"]</label>
+        <input asp-for="Input.Email" class="form-control first-phase mt-0" autocomplete="username" aria-required="true" id="registerEmailField" value=@if (TempData.ContainsKey("Email")) 
+    { 
+        @TempData["Email"]; 
+    }/>
+        <div asp-validation-for="Input.Email" class="text-danger" id="emailDanger">  @if (ModelState.ContainsKey("EmailRed")) { @ViewData.ModelState["EmailRed"].Errors.FirstOrDefault().ErrorMessage.ToString(); }</div>
+
+        <label asp-for="Input.Password" class="first-phase form-label text-primary mt-3 mb-0">@Localizer["password"]</label>
+        <div class="d-flex me-4 me-sm-0">
+            <input asp-for="Input.Password" class="form-control first-phase mt-0" autocomplete="new-password" aria-required="true" id="registerPasswordField" value=@if (TempData.ContainsKey("Password"))
+                {
+                @TempData["Password"];
+                } />
+            <div class="position-relative first-phase">
+                <div id="password-eye" class="bi bi-eye fs-4 text-primary pointer-active ms-1 position-absolute" onclick="toggleRegisterPasswordVisibility()"></div>
+            </div>
+        </div>
+        <div asp-validation-for="Input.Password" class="text-danger text-wrap" id="passDanger"> @if (ViewData.ModelState.ContainsKey("PasswordRed")) {@ViewData.ModelState["PasswordRed"].Errors.FirstOrDefault().ErrorMessage.ToString(); }</div>
+            
+            
+        <label asp-for="Input.ConfirmPassword" class="first-phase form-label text-primary mt-3 mb-0">@Localizer["confirm_password"]</label>
+        <div class="d-flex me-4 me-sm-0">
+            <input asp-for="Input.ConfirmPassword" class="form-control first-phase mt-0" autocomplete="new-password" aria-required="true" id="registerConfirmPasswordField" value=@if (TempData.ContainsKey("ConfirmPassword"))
+                   {
+                   @TempData["ConfirmPassword"];
+                   } />
+            <div class="position-relative first-phase">
+                <div id="confirm-password-eye" class="bi bi-eye fs-4 text-primary pointer-active ms-1 position-absolute" onclick="toggleConfirmPasswordVisibility()"></div>
+            </div>
+        </div>
+        <div asp-validation-for="Input.ConfirmPassword" class="text-danger" id="passConfirmDanger">@if (ViewData.ModelState.ContainsKey("ConfirmPasswordRed")){@ViewData.ModelState["ConfirmPasswordRed"].Errors.FirstOrDefault().ErrorMessage.ToString();}</div>
+
+        <label asp-for="Input.FullName" class="second-phase form-label text-primary mb-0">@Localizer["full_name"]</label>
+        <input asp-for="Input.FullName" class="form-control second-phase mt-0" id="nicknameField" autocomplete="username" aria-required="true" value=@if (TempData.ContainsKey("Name"))
+               {
+               @TempData["Name"]
+;
+               } />
+        <div asp-validation-for="Input.FullName" class="text-danger" id="nameDanger">@if (ViewData.ModelState.ContainsKey("NameRed")){@ViewData.ModelState["NameRed"].Errors.FirstOrDefault().ErrorMessage.ToString();}</div>
+
+        <label asp-for="Input.Gender" class="second-phase form-label text-primary mt-3 mb-0">@Localizer["gender"]</label>
+        <select asp-for="Input.Gender" asp-items="genders" class="form-control second-phase form-select mt-0" id="genderField"></select>
+        <div asp-validation-for="Input.Gender" class="text-danger" id="genderDanger">@if (ViewData.ModelState.ContainsKey("GenderRed")){@ViewData.ModelState["GenderRed"].Errors.FirstOrDefault().ErrorMessage.ToString();}</div>
+
+        <label asp-for="Input.BirthdayDate" class="second-phase form-label text-primary mt-3 mb-0">@Localizer["birthday_date"]</label>
+        <input asp-for="Input.BirthdayDate" type="date" class="form-control second-phase mt-0" autocomplete="username" aria-required="true" id="birthField" value=@if (TempData.ContainsKey("Date")) 
+    { 
+        @TempData["Date"];
+    }/>
+        <div asp-validation-for="Input.Email" class="text-danger" id="birthDanger">@if (ViewData.ModelState.ContainsKey("AgeRed"))
+            {
+                @ViewData.ModelState["AgeRed"].Errors.FirstOrDefault().ErrorMessage.ToString()
+                ;
+            }</div>
+
+        <div class="d-flex flex-row justify-content-sm-evenly justify-content-center flex-wrap mt-5 w-auto">
+            <a id="reg-phase-return-btn" class="second-phase btn btn-primary me-2 mb-1">@Localizer["back"]</a>
+            <a class="btn btn-primary ml-5 text-nowrap me-2 mb-1" asp-page="./Login">@Localizer["go_to_login"]</a>
+            <button id="reg-phase-btn" class="first-phase btn btn-primary mr-5 text-nowrap mb-1">@Localizer["continue_register"]</button>
+            <a id="registerSubmit" class="second-phase btn btn-primary mr-5 text-nowrap mb-1" onclick="RegisterFunction()">@Localizer["register"]</a>
+            <a id="registerFinalSubmit" type="submit" class="hidden" onclick=""></a>
+        </div>
+    </form>
+    <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post" class="form-horizontal">
+    @foreach (var provider in Model.ExternalLogins!) {
+        if (provider.Name == "Google") {
+            <button type="submit" class="btn border hover-background-grey mt-4" name="provider" value="@provider.Name" title="Log in using your @provider.DisplayName account">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google logo" width="50" height="50">
+
+            </button>
+        }
+        else {
+            <button type="submit" class="btn btn-primary" name="provider" value="@provider.Name" title="Log in using your @provider.DisplayName account">
+                @provider.DisplayName
+            </button>
+        }
+    }
+    </form>
+</div>
+<script>
+    "use strict";
+
+    //if (TempData.ContainsKey("Gender"))
+    //{
+    //    TempData["Gender"];
+    //}
+    function showPhase(isPhaseOne) {
+        let pattern = /^(?!_)(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?!.*[<>\'\"])[^\x3C\x3E\x27\x22]{6,}$/;
+        let email = document.getElementById('registerEmailField').value;
+        let password = document.getElementById('registerPasswordField').value;
+        let confirmPassword = document.getElementById('registerConfirmPasswordField').value;
+        if (!email.includes("@@")) {
+            ResetDanger();
+            document.getElementById('emailDanger').innerHTML = "@Localizer["invalid_email"].Value";
+            console.log("Email Wrong");
+            return
+        }
+        if (!pattern.test(password)) {
+            ResetDanger();
+            document.getElementById('passDanger').innerHTML = "@Localizer["invalid_password"].Value";
+            console.log("Password Wrong");
+            return
+        }
+        if (!(password === confirmPassword)) {
+            ResetDanger();
+            document.getElementById('passConfirmDanger').innerHTML = "@Localizer["password_mismatch"].Value";
+            console.log("Password and ConfirmPassword Different");
+            return
+        }
+
+        let phaseOneStyle = (!!isPhaseOne) ? "none" : "inherit";
+        let phaseTwoStyle = (!!isPhaseOne) ? "inherit" : "none";
+
+        let firstPhaseLen = document.getElementsByClassName("first-phase").length;
+        let secondPhaseLen = document.getElementsByClassName("second-phase").length;
+        ResetDanger()
+        for (let i = 0; i < firstPhaseLen; i++) {
+            let element = document.getElementsByClassName("first-phase")[i];
+            element.style.display = phaseOneStyle;
+            element.addEventListener("keypress", function (event) {
+                if (event.key === "Enter") {
+                    event.preventDefault();
+                    document.getElementById("reg-phase-btn").click();
+                }
+            });
+        }
+        for (let i = 0; i < secondPhaseLen; i++) {
+            let element = document.getElementsByClassName("second-phase")[i];
+            element.style.display = phaseTwoStyle;
+            element.addEventListener("keypress", function (event) {
+                if (event.key === "Enter") {
+                    event.preventDefault();
+                    document.getElementById("registerSubmit").click();
+                }
+            });
+        }
+    }
+
+    function showPhaseReturn(isPhaseOne) {
+        let phaseOneStyle = (!!isPhaseOne) ? "inherit" : "none";
+        let phaseTwoStyle = (!!isPhaseOne) ? "none" : "inherit";
+
+        let firstPhaseLen = document.getElementsByClassName("first-phase").length;
+        let secondPhaseLen = document.getElementsByClassName("second-phase").length;
+        ResetDanger()
+        for (let i = 0; i < firstPhaseLen; i++) {
+            document.getElementsByClassName("first-phase")[i].style.display = phaseOneStyle;
+        }
+        for (let i = 0; i < secondPhaseLen; i++) {
+            document.getElementsByClassName("second-phase")[i].style.display = phaseTwoStyle;
+        }
+    }
+
+    function compareDates() {
+        //Get the text in the elements
+        let birthDate = document.getElementById("birthField").value;
+        let today = new Date();
+
+        //Generate an array where the first element is the year, second is month and third is day
+        let splitFrom = birthDate.split('/');
+        let splitTo = today.toString().split('/');
+
+        //Create a date object from the arrays
+        let fromDate = Date.parse((parseInt(splitFrom[0]) + 13).toString(), splitFrom[1] - 1, splitFrom[2]);
+        let toDate = Date.parse(splitTo[0], splitTo[1] - 1, splitTo[2]);
+
+        //Return the result of the comparison
+        return fromDate > toDate;
+    }
+
+    function registerPhase() {
+        let isFirstPhase = document.getElementsByClassName("first-phase")[0].style.display !== "none";
+        console.log(isFirstPhase);
+        showPhase(isFirstPhase);
+        event.preventDefault();
+    }
+
+    function returnPhase() {
+        let isSecondtPhase = document.getElementsByClassName("first-phase")[0].style.display === "none";
+        console.log(isSecondtPhase);
+        showPhaseReturn(isSecondtPhase);
+        event.preventDefault();
+    }
+
+    document.getElementById("reg-phase-btn").onclick = registerPhase;
+    document.getElementById("reg-phase-return-btn").onclick = returnPhase;
+    function RegisterFunction(){
+        let birthDate = document.getElementById("birthField");
+        let gender = document.getElementById("genderField");
+        let username = document.getElementById("nicknameField");
+        if (!birthDate.value) {
+            ResetDanger();
+            document.getElementById('birthDanger').innerHTML = "@Localizer["invalid_birthday_date"].Value";
+            event.preventDefault();
+            console.log(birthDate);
+            return false
+        }
+        if(compareDates()){
+            ResetDanger();
+            document.getElementById('birthDanger').innerHTML = "@Localizer["too_young_birthday_date"].Value";
+            event.preventDefault();
+            console.log(birthDate);
+            return false
+        }
+        if (!username || username.value === "") {
+            ResetDanger();
+            document.getElementById('nameDanger').innerHTML = "@Localizer["invalid_name"].Value";
+            event.preventDefault();
+            console.log(username);
+            return false
+        }
+        if (username.value.includes("<") || username.value.includes(">") || username.value.includes("'") || username.value.includes('"') || username.value[0] === "_") {
+            ResetDanger();
+            document.getElementById('nameDanger').innerHTML = "@Localizer["name_may_not_contain"].Value";
+            event.preventDefault();
+            console.log(username);
+            return false
+        }
+        document.getElementById("registerForm").submit();
+    }
+
+    function ResetDanger(){
+        document.getElementById('Danger').innerHTML = "";
+        document.getElementById('nameDanger').innerHTML = "";
+        document.getElementById('birthDanger').innerHTML = "";
+        document.getElementById('passConfirmDanger').innerHTML = "";
+        document.getElementById('passDanger').innerHTML = "";
+        document.getElementById('emailDanger').innerHTML = "";
+        document.getElementById('genderDanger').innerHTML = "";
+
+    }
+
+    function toggleRegisterPasswordVisibility() {
+        togglePasswordVisibility("registerPasswordField", "password-eye");
+    }
+
+    function toggleConfirmPasswordVisibility() {
+        togglePasswordVisibility("registerConfirmPasswordField", "confirm-password-eye");
+    }
+</script>
+
+<!--
+<h1>@ViewData["Title"]</h1>
+
+<div class="row">
+    <div class="col-md-4">
+        <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+            <h2>Create a new account.</h2>
+            <hr />
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-floating">
+                <input asp-for="Input.FullName" class="form-control" autocomplete="username" aria-required="true" />
+                <label asp-for="Input.FullName"></label>
+                <span asp-validation-for="Input.FullName" class="text-danger"></span>
+            </div>
+            <div class="form-floating">
+                <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" />
+                <label asp-for="Input.Email"></label>
+                <span asp-validation-for="Input.Email" class="text-danger"></span>
+            </div>
+            <div class="form-floating">
+                <input asp-for="Input.BirthdayDate" type="date" class="form-control" autocomplete="username" aria-required="true" />
+                <label asp-for="Input.BirthdayDate"></label>
+                <span asp-validation-for="Input.Email" class="text-danger"></span>
+            </div>
+            <div class="form-floating">
+                <select asp-for="Input.Gender" asp-items="genders" class="form-control form-select mt-0"></select>
+                <label asp-for="Input.Gender"></label>
+                <span asp-validation-for="Input.Gender" class="text-danger"></span>
+            </div>
+            <div class="form-floating">
+                <input asp-for="Input.Password" class="form-control" autocomplete="new-password" aria-required="true" />
+                <label asp-for="Input.Password"></label>
+                <span asp-validation-for="Input.Password" class="text-danger"></span>
+            </div>
+            <div class="form-floating">
+                <input asp-for="Input.ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true" />
+                <label asp-for="Input.ConfirmPassword"></label>
+                <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
+            </div>
+            <button id="registerSubmit" type="submit" class="w-100 btn btn-lg btn-primary">Register</button>
+        </form>
+    </div>
+    <div class="col-md-6 col-md-offset-2">
+        <section>
+            <h3>Use another service to register.</h3>
+            <hr />
+            @{
+                if ((Model.ExternalLogins?.Count ?? 0) == 0)
+                {
+    <div>
+                                                                                                            <p>
+                                                                                                                There are no external authentication services configured. See this <a href="https://go.microsoft.com/fwlink/?LinkID=532715">article
+                                                                                                                about setting up this ASP.NET application to support logging in via external services</a>.
+                                                                                                            </p>
+    </div>
+                }
+                else
+                {
+    <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post" class="form-horizontal">
+                                                                                                            <div>
+                                                                                                                <p>
+                                                                                                                    @foreach (var provider in Model.ExternalLogins)
+                                {
+                                                                                                                        <button type="submit" class="btn btn-primary" name="provider" value="@provider.Name" title="Log in using your @provider.DisplayName account">@provider.DisplayName</button>
+                                }
+                                                                                                                </p>
+                                                                                                            </div>
+    </form>
+                }
+            }
+        </section>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+    -->

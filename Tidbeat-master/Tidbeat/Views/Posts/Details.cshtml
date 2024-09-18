@@ -1,0 +1,351 @@
+﻿@using Tidbeat.Enums
+@using Microsoft.AspNetCore.Mvc.Localization;
+@inject IViewLocalizer Localizer;
+@model Tidbeat.Models.Post
+
+@{
+    ViewData["Title"] = "Details";
+    var from = Localizer["from"].Value;
+    var fromUpper = "";
+    if (from != null) {
+        fromUpper = char.ToUpper(from[0]) + from.Substring(1);
+    }
+}
+
+<div>
+    @{
+        await Html.RenderPartialAsync("_Sidebar");
+    }
+</div>
+
+<div class="mt-4 pt-5 row">
+    @if (TempData.ContainsKey("Sucess")) {
+        <div id="success-alert" class="alert alert-success mt-2 alert-dismissible fade show position-relative d-flex justify-content-center align-items-center" role="alert">
+            @TempData["Sucess"]
+            <button type="button" class="close btn position-absolute end-0" data-dismiss="alert" aria-label="Close">
+                <span class="fs-4" aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    }
+    @if (TempData.ContainsKey("Error")) {
+        <div id="error-alert" class="alert alert-danger mt-2 alert-dismissible fade show" role="alert">
+            @TempData["Error"]
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    }
+    <!-- Main page content -->
+    <div class="d-flex flex-column flex-md-row flex-sm-column">
+        <div class="col-md-6 col-sm-12 border-md-end vh-100-minus-navbar pe-0">
+            <div class="d-flex justify-content-between">
+                <div class="w-100 d-flex">
+                    @if (!string.IsNullOrEmpty(Model.User.ImagePath)) {
+                        <img class="rounded" src="@Model.User.ImagePath" width="80" />
+                    } else {
+                        <img src="/images/UnknownUser.jpg" width="80" />
+                    }
+                    <div class="d-flex flex-column ms-3 align-items-start mt-3">
+                        <div class="d-flex flex-row">
+                            <div class="fw-bold fs-6">@fromUpper: </div>
+                            <div class="d-flex align-content-center">
+                                @if (Model.User.Email == Configurations.InvalidUser.Email) {
+                                    <div class="ms-2">
+                                        @Localizer["[deleted]"]
+                                    </div>
+                                } else {
+                                    <a class="fw-light text-decoration-none ms-2" asp-Controller="Profiles" asp-Action="Details" asp-route-id="@Model.User.Id">
+                                        @Model.User.FullName
+                                    </a>
+                                    @if (Model.User.Role.Equals(Tidbeat.Enums.RoleType.Admin)) {
+                                        <div class="bi bi-diamond-fill fs-6 ms-1 py-0 text-primary" data-toggle="tooltip" data-placement="top" title="@Localizer["admin"]"></div>
+                                    }
+                                    else if (Model.User.Role.Equals(Tidbeat.Enums.RoleType.Moderator)) {
+                                        <div class="bi bi-diamond-fill fs-6 ms-1 py-0 text-danger" data-toggle="tooltip" data-placement="top" title="@Localizer["moderator"]"></div>
+                                    }
+                                    else {
+                                        <div class="bi bi-music-note fs-6 ms-1 py-0 text-black" data-toggle="tooltip" data-placement="top" title="@Localizer["normal_user"]"></div>
+                                    }
+                                }
+                            </div>
+                        </div>
+                        <div class="d-flex flex-row">
+                            <div class="fw-bold fs-6">
+                                @Localizer["created_in"]:
+                            </div>
+                            <span class="text-dark fw-light ms-2">@Model.CreationDate.Date.ToString("dd/MM/yyyy")</span>
+
+                        </div>
+
+                        @if (Model.IsEdited)
+                        {
+                            <span class="fs-6 ">&nbsp;(@Localizer["edited_in"] - @Model.EditDate.Date.ToString("dd/MM/yyyy"))</span>
+                        }
+                    </div>
+
+
+                </div>
+                @if (Model.User.Id == ViewBag.currentUser?.Id || User.IsInRole("Moderator") || User.IsInRole("Admin"))
+                {
+                    <div class="d-flex flex-column border  border-top-0 border-primary me-2">
+                        <a class="text-primary rounded text-decoration-none bi bi-pencil-fill fs-6 px-2 py-1 mb-1 hover-background-grey" asp-action="Edit" asp-route-id="@Model.PostId"></a>
+                        <a class="text-danger rounded text-decoration-none bi bi-trash-fill fs-6 px-2 py-1 hover-background-grey" asp-action="Delete" asp-route-id="@Model.PostId"></a>
+                    </div>
+                } else {
+                    if (User.Identity.IsAuthenticated)
+                    {
+                        <div>
+                            <button class="bi bi-exclamation-triangle-fill text-danger fs-4 hover-background-grey py-0 px-1 btn" data-bs-toggle="modal" data-bs-target="#report-modal" data-id="@Model.PostId" data-type="Post"></button>
+                        </div>
+                    }
+                }
+            </div>
+            <hr />
+            @if (Model.Song != null)
+            {
+
+                <div class="d-flex flex-row ms-2 fs-6">
+
+                    <div class="post-label-right-aligned">@Localizer["song"]:&nbsp;</div>
+                    <div><a class="text-primary-hover ms-2" asp-controller="Songs" asp-action="Details" asp-route-id="@Model.Song.SongId">@Model.Song.Name</a></div>
+                    <!--<div class="text-primary">&nbsp;&nbsp;&nbsp;&nbsp;Link:&nbsp;</div>
+                    <a href="https://open.spotify.com/track/@Model.Song.SongId" target="_blank">Spotify - @Model.Song.Name by @Model.Band.Name</a>-->
+                </div>
+                <div class="d-flex flex-row ms-2 fs-6">
+                    <div class="post-label-right-aligned">&nbsp;@(from)&nbsp;</div>
+                    <div> <a class="text-primary-hover ms-2" asp-controller="Bands" asp-action="Details" asp-route-id="@Model.Band.BandId">@Model.Band.Name </a></div>
+
+                </div>
+            }
+            else if (Model.Band != null)
+            {
+                <div class="d-flex flex-column ms-2 fs-6">
+                    <div class="d-flex flex-row w-100">
+                        <div class="post-label-right-aligned">@Localizer["band"]:</div>
+                        <a class="text-primary-hover ms-2" asp-controller="Bands" asp-action="Details" asp-route-id="@Model.Band.BandId">@Model.Band.Name </a>
+                    </div>
+                    <div class="d-flex flex-row w-100">
+                        <div class="post-label-right-aligned">Link:</div>
+                        <a class="text-primary-hover ms-2" href="https://open.spotify.com/artist/@Model.Band.BandId" target="_blank">Spotify - @Model.Band.Name</a>
+                    </div>
+                </div>
+            }
+            @if (Model.Song != null || Model.Band != null)
+            {
+                <hr style="height: 0.85pt !important" />
+            }
+
+            <div class="d-flex">
+                @if (Model.Song != null && ViewBag.urlSong != null)
+                {
+                    <div>
+                        <div>
+                            <img id="startAudio" src="~/images/PlayButton.png" class="pointer-active" />
+                            <div id="audioStatus" class="text-nowrap"></div>
+                        </div>
+                        <audio id="myAudio">
+                            <source src="@ViewBag.urlSong" type="audio/mpeg">
+                        </audio>
+                    </div>
+                }
+                <div class="ms-2 w-100">
+                    <h4 class="d-flex fw-bold fs-1">@Model.Title</h4>
+                    <div id="post-content" class="text-start pb-4">@Html.Raw(Model.Content)</div>
+                </div>
+            </div>
+            <hr style="height: 1pt !important" />
+            <div class="d-flex">@Html.Partial("_RatingPartial", Tuple.Create(Model.PostId, RatingType.Post))</div>
+        </div>
+
+
+        <div class="col-md-6 col-sm-12 ms-0 ms-md-2 ms-sm-0">
+            <div class="text-start mt-2 mb-2">@Localizer["comments"]:<hr class="m-0 mb-2"></div>
+            @if (User.Identity.IsAuthenticated)
+            {
+                <form class="w-100  d-flex flex-column mb-1" asp-controller="Comments" asp-action="Create" id="commentForm" method="post">
+                    <div class="d-flex">
+                        <input asp-for="Content" class="form-control second-phase mt-0 rounded border-primary" id="commentText" autocomplete="text" aria-required="true" value="" />
+                        <button type="submit" class="ms-2 btn btn-primary  me-md-2 me-sm-0">@Localizer["submit"]</button>
+                    </div>
+                    <input name="PostId" hidden id="commentPostID" value="@Model.PostId" />
+                </form>
+            }
+
+            <div id="comments-list" class="scrollable-comments me-2 me-md-2 me-sm-0">
+                <div>@Html.Partial("_CommentListPartial", (List<Comment>) ViewBag.commentsPosts)</div>
+                @if (ViewBag.commentsPosts.Count == 0)
+                {
+                    <div>@Localizer["no_comments"]</div>
+                }
+                @if (ViewBag.commentsPosts.Count < ViewBag.totalCommentCount) {
+                    <button id="load-more-comments-button" class="btn btn-primary mt-2 mb-1">Carregar mais comentários</button>
+                }
+            </div>
+            
+            <input id="selectedCommentId" hidden />
+            <form id="delete-comment-modal" style="outline: none;" method="post">
+                <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="deleteModalLabel">@Localizer["delete_comment"]</h5>
+                                <button type="button" class="close custom-close rounded btn btn-primary" data-bs-dismiss="modal" aria-label="Close">
+                                    <i class="bi bi-x font-white" style="font-size: 1.1rem;" aria-hidden="true"></i>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                @Localizer["are_you_sure_delete_comment"]
+                            </div>
+                            <div class="modal-footer">
+                                <button id="deleteButtonModal" name="deleteButtonModal" type="submit" class="btn btn-danger text-danger" style="outline: thick solid #DC3545; outline-width: 3px">@Localizer["delete"]</button>
+                                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">@Localizer["cancel"]</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+    </div>
+    <div class="w-75">
+        @Html.Partial("_ReportModalPartial")
+    </div>
+    <!--<a class="text-primary" asp-action="Index">Voltar</a>-->
+</div>
+<script>
+    var startAudio = document.getElementById("startAudio");
+    var myAudio = document.getElementById("myAudio");
+    var audioStatus = document.getElementById("audioStatus");
+    myAudio.volume = 0.4;
+    var isPlaying = false;
+
+    startAudio.onclick = function () {
+        if (isPlaying) {
+            myAudio.pause();
+            isPlaying = false;
+            startAudio.src = "../../images/PlayButton.png";
+            audioStatus.innerHTML = (30 - myAudio.currentTime.toFixed(0)) + "s";
+            myAudio.removeEventListener("timeupdate", updateTime);
+        } else {
+            myAudio.play();
+            isPlaying = true;
+            startAudio.src = "../../images/StopButton.png";
+            myAudio.addEventListener("timeupdate", updateTime);
+        }
+    }
+
+    function updateTime() {
+        audioStatus.innerHTML = (30 - myAudio.currentTime.toFixed(0)) + "s";
+    }
+
+    startAudio.addEventListener("mouseover", function () {
+        if (isPlaying) {
+            startAudio.src = "../../images/StopButtonHover.png";
+        } else {
+            startAudio.src = "../../images/PlayButtonHover.png";
+        }
+    });
+
+    startAudio.addEventListener("mouseout", function () {
+        if (isPlaying) {
+            startAudio.src = "../../images/StopButton.png";
+        } else {
+            startAudio.src = "../../images/PlayButton.png";
+        }
+    });
+
+    myAudio.addEventListener("ended", function () {
+        isPlaying = false;
+        startAudio.src = "../../images/PlayButton.png";
+        audioStatus.innerHTML = "";
+    });
+    var commentSubmit = document.getElementById("commentText");
+    commentSubmit.addEventListener("keypress", function (event) {
+        // If the user presses the "Enter" key on the keyboard
+        if (event.key === "Enter") {
+            // Cancel the default action, if needed
+            event.preventDefault();
+            // Trigger the button element with a click
+            document.getElementById("commentForm").submit();
+        }
+    });
+
+    function selectComment(commentId) {
+        var modalForm = document.getElementById('delete-comment-modal');
+        modalForm.setAttribute('action', '/Comments/Delete/' + commentId);
+    }
+</script>
+<script>
+    $(document).ready(function () {
+        
+        $('[data-toggle="tooltip"]').tooltip();
+        
+        // Hide the success and error messages after 5 seconds
+        $("#success-alert, #error-alert").delay(5000).fadeOut(500);
+
+        // Dismiss the success and error messages when the close button is clicked
+        $(".close").click(function () {
+            $("#success-alert, #error-alert").alert("close");
+        });
+
+        // AJAX request to fetch more comments
+        var postId = @Model.PostId; // replace with the actual post ID
+        var commentCount = @ViewBag.fetchCommentsCount; // number of comments to fetch
+        var skipCount = @ViewBag.fetchCommentsCount; // number of comments to skip
+
+        $("#load-more-comments-button").click(function () {
+            $.ajax({
+                type: "GET",
+                url: "@Url.Action("FetchMoreComments", "Posts")",
+                data: {
+                    postId: postId,
+                    commentCount: commentCount,
+                    skipCount: skipCount
+                },
+                success: function (result) {
+                    $("#load-more-comments-button").before(result);
+                    $("#load-more-comments-button").blur();
+                    console.log(result);
+                    // update the skip count for the next AJAX request
+                    skipCount += commentCount;
+                    if (skipCount >= @ViewBag.totalCommentCount) {
+                        $("#load-more-comments-button").hide();
+                    }
+                },
+                error: function (xhr, status, error) {
+                    // handle the error
+                    console.log(error);
+                }
+            });
+        });
+    });
+</script>
+
+<!--
+<h3 style="color: #6610F2; margin-top: 100px;" >Detalhes do Post</h3>
+
+<div class="d-flex justify-content-center">
+    <div>
+        <hr />
+        <dl class="row">
+            <dt class="col-sm-2" style="color: #6610F2;">
+                @Html.DisplayNameFor(model => model.Title)
+            </dt>
+            <dd class="col-sm-10">
+                @Html.DisplayFor(model => model.Title)
+            </dd>
+            <dt class="col-sm-2" style="color: #6610F2;">
+                @Html.DisplayNameFor(model => model.Content)
+            </dt>
+            <dd class="col-sm-10">
+                @Html.DisplayFor(model => model.Content)
+            </dd>
+        </dl>
+    </div>
+</div>
+
+<div style="margin-top: 20px;">
+    <a asp-action="Edit" asp-route-id="@Model?.PostId">Editar</a> |
+    <a asp-action="Index">Cancelar</a>
+</div>
+-->

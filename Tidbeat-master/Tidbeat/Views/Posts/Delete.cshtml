@@ -1,0 +1,102 @@
+﻿@using Microsoft.AspNetCore.Mvc.Localization;
+@inject IViewLocalizer Localizer;
+@model Tidbeat.Models.Post
+
+@{
+    ViewData["Title"] = "Delete";
+}
+
+<div>
+    @{
+        await Html.RenderPartialAsync("_Sidebar");
+    }
+</div>
+
+<style>
+    .btn-danger {
+        background-color: #e62517;
+        color: white;
+        border-color: #e62517;
+    }
+
+     .btn-danger:hover {
+         background-color: #e62517;
+         color_: white;
+         border-color: #e62517;
+     }
+
+     .btn-danger:active,
+     .btn-danger:focus {
+          background-color: #e62517;
+          color: white;
+          border-color: #e62517;
+     }
+
+    .btn-secondary {
+          background-color: white;
+          color: #6610F2;
+          border-color: #6610F2;
+    }
+
+    .btn-secondary:hover {
+          background-color: white;
+          color: #6610F2;
+          border-color: #6610F2;
+    }
+
+    .btn-secondary:active,
+    .btn-secondary:focus {
+          background-color: white;
+          color: #6610F2;
+          border-color: #6610F2;
+    }
+
+    .custom-close {
+        background-color: #6610F2;
+        color: white;
+    }
+
+    .modal-footer button {
+        margin-right: 15px;
+    }
+</style>
+
+
+
+<h3 style="color: #6610F2; margin-top: 100px;">@Localizer["delete_post"]</h3>
+<hr />
+
+
+<h5>@Localizer["you_will_delete_the_post"]</h5>
+<div>@Localizer["the_title_is"] "@Model.Title". @Localizer["are_you_sure"]</div>
+
+<div class="container d-flex justify-content-center" style="margin-top:20px;">
+    <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+        @Localizer["delete"]
+    </button>
+    <a asp-action="Index" style="margin-left: 50px; margin-right: 10px; margin-top:4px;">@Localizer["cancel"]</a>
+</div>
+
+<!-- Modal Box-->
+<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">@Localizer["delete_post"]</h5>
+                <button type="button" class="close custom-close rounded btn btn-primary" data-bs-dismiss="modal" aria-label="Close">
+                    <i class="bi bi-x font-white" style="font-size: 1.1rem;" aria-hidden="true"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                @Localizer["are_you_sure"]
+            </div>
+            <div class="modal-footer">
+                <form asp-action="Delete">
+                    <input type="hidden" asp-for="PostId" />
+                    <button type="submit" class="btn btn-danger">@Localizer["delete"]</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@Localizer["cancel"]</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

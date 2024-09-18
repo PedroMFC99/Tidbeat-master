@@ -1,0 +1,230 @@
+﻿@page
+@using Microsoft.AspNetCore.Mvc.Localization;
+@inject IViewLocalizer Localizer;
+@model LoginModel
+
+@{
+    ViewData["Title"] = "Log in";
+}
+
+<div class="text-center d-flex flex-column temporary-margin">
+    <h3 class="display-4 text-primary">@Localizer["login_in_tidbeat"]</h3>
+    <form class="mx-auto d-flex flex-column w-lg-25 w-sm-60" id="account" method="post">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <div class="text-danger" id="Danger">
+            @if (ModelState.ContainsKey("Danger"))
+            {
+                @ViewData.ModelState["Danger"].Errors.FirstOrDefault().ErrorMessage.ToString()
+                ;
+            }
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Input.Email" class="form-label text-primary">@Localizer["email"]</label>
+            <input asp-for="Input.Email" type="email" class="form-control" id="InputEmail1" aria-describedby="emailHelp" value=@if (TempData.ContainsKey("Email"))
+                   {
+                   @TempData["Email"]
+                   ;
+                   }>
+            <div asp-validation-for="Input.Email" class="text-danger" id="emailDanger">
+                @if (ModelState.ContainsKey("EmailRed"))
+                {
+                    @ViewData.ModelState["EmailRed"].Errors.FirstOrDefault().ErrorMessage.ToString()
+                    ;
+                }
+            </div>
+            <div id="emailHelp" class="form-text">@Localizer["we_will_never_share_your_email"]</div>
+        </div>
+        <div class="mb-3 me-4 me-sm-0">
+            <label asp-for="Input.Password" class="form-label text-primary">@Localizer["password"]</label>
+            <div class="d-flex">
+                <input asp-for="Input.Password" type="password" class="form-control" id="InputPassword1" value=@if (TempData.ContainsKey("Password"))
+                       {
+                       @TempData["Password"]
+    ;
+                       }>
+                <div class="position-relative">
+                    <div id="password-eye" class="bi bi-eye fs-4 text-primary pointer-active ms-1 position-absolute" onclick="toggleLoginPasswordVisibility()"></div>
+                </div>
+            </div>
+            <div asp-validation-for="Input.Password" class="text-danger" id="passDanger">
+                @if (ViewData.ModelState.ContainsKey("PasswordRed"))
+                {
+                    @ViewData.ModelState["PasswordRed"].Errors.FirstOrDefault().ErrorMessage.ToString()
+                    ;
+                }
+            </div>
+        </div>
+        <div class="checkbox">
+            <label asp-for="Input.RememberMe" class="form-label">
+                <input class="form-check-input" asp-for="Input.RememberMe" />
+                @Localizer["remind_password"]
+            </label>
+        </div>
+        <p>
+            <a id="forgot-password" asp-page="./ForgotPassword">@Localizer["forgot_password"]</a>
+        </p>
+        <!--
+        <div class="border border-2 border-primary rounded-3 w-20 d-flex align-self-center justify-content-center mb-3">
+            <a href="/signin-google">
+                <img src="~/images/GoogleIcon.png" width="55" height="55" />
+            </a>
+        </div>-->
+        
+        <asp:Button id="loginFinalSubmit" type="submit" class="hidden" ></asp:Button>
+        <asp:Button id="login-submit" class="btn btn-primary" onclick="LoginFunction()">@Localizer["login"]</asp:Button>
+        <p class="mt-2">
+            <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl">@Localizer["no_tidbeat_account"]</a>
+        </p>
+    </form>
+    <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post" class="form-horizontal">
+        <div>
+            <p>
+                @foreach (var provider in Model.ExternalLogins!) {
+                    if (provider.Name == "Google") {
+                        <button type="submit" class="btn border hover-background-grey" name="provider" value="@provider.Name" title="Log in using your @provider.DisplayName account">
+                            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google logo" width="50" height="50">
+                            
+                        </button>
+                    }
+                    else {
+                        <button type="submit" class="btn btn-primary" name="provider" value="@provider.Name" title="Log in using your @provider.DisplayName account">
+                            @provider.DisplayName
+                        </button>
+                    }
+                }
+            </p>
+        </div>
+    </form>
+</div>
+<script>
+    "use strict";
+    document.getElementById("InputEmail1").addEventListener("keypress", function (event) {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            document.getElementById("login-submit").click();
+        }
+    });
+
+    document.getElementById("InputPassword1").addEventListener("keypress", function (event) {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            document.getElementById("login-submit").click();
+        }
+    });
+
+    element.addEventListener("keypress", function (event) {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            document.getElementById("reg-phase-btn").click();
+        }
+    });
+
+    function LoginFunction() {
+        let pattern = /^(?!_)(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?!.*[<>\'\"])[^\x3C\x3E\x27\x22]{6,}$/;
+        let email = document.getElementById('InputEmail1').value;
+        let password = document.getElementById('InputPassword1').value;
+        if (!email.includes("@@")) {
+            ResetDanger();
+            document.getElementById('emailDanger').innerHTML = "@Localizer["invalid_email"]";
+            console.log("Email Wrong");
+            return
+        }
+        if (!pattern.test(password)) {
+            ResetDanger();
+            document.getElementById('passDanger').innerHTML = "@Localizer["invalid_password"]";
+            console.log("Password Wrong");
+            return
+        }
+        document.getElementById("account").submit();
+    }
+
+    function ResetDanger() {
+        document.getElementById('Danger').innerHTML = "";
+        document.getElementById('passDanger').innerHTML = "";
+        document.getElementById('emailDanger').innerHTML = "";
+    }
+
+    function toggleLoginPasswordVisibility() {
+        togglePasswordVisibility("InputPassword1", "password-eye");
+    }
+</script>
+<!--
+<h1>@ViewData["Title"]</h1>
+<div class="row">
+    <div class="col-md-4">
+        <section>
+            <form id="account" method="post">
+                <h2>Use a local account to log in.</h2>
+                <hr />
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <div class="form-floating">
+                    <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" />
+                    <label asp-for="Input.Email" class="form-label"></label>
+                    <span asp-validation-for="Input.Email" class="text-danger"></span>
+                </div>
+                <div class="form-floating">
+                    <input asp-for="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" />
+                    <label asp-for="Input.Password" class="form-label"></label>
+                    <span asp-validation-for="Input.Password" class="text-danger"></span>
+                </div>
+                <div>
+                    <div class="checkbox">
+                        <label asp-for="Input.RememberMe" class="form-label">
+                            <input class="form-check-input" asp-for="Input.RememberMe" />
+                            @Html.DisplayNameFor(m => m.Input.RememberMe)
+                        </label>
+                    </div>
+                </div>
+                <div>
+                    <button id="login-submit" type="submit" class="w-100 btn btn-lg btn-primary">Log in</button>
+                </div>
+                <div>
+                    <p>
+                        <a id="forgot-password" asp-page="./ForgotPassword">Forgot your password?</a>
+                    </p>
+                    <p>
+                        <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl">Register as a new user</a>
+                    </p>
+                    <p>
+                        <a id="resend-confirmation" asp-page="./ResendEmailConfirmation">Resend email confirmation</a>
+                    </p>
+                </div>
+            </form>
+        </section>
+    </div>
+    <div class="col-md-6 col-md-offset-2">
+        <section>
+            <h3>Use another service to log in.</h3>
+            <hr />
+            @{
+                if ((Model.ExternalLogins?.Count ?? 0) == 0)
+                {
+                    <div>
+                        <p>
+                            There are no external authentication services configured. See this <a href="https://go.microsoft.com/fwlink/?LinkID=532715">article
+                            about setting up this ASP.NET application to support logging in via external services</a>.
+                        </p>
+                    </div>
+                }
+                else
+                {
+                    <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post" class="form-horizontal">
+                        <div>
+                            <p>
+                                @foreach (var provider in Model.ExternalLogins)
+                                {
+                                    <button type="submit" class="btn btn-primary" name="provider" value="@provider.Name" title="Log in using your @provider.DisplayName account">@provider.DisplayName</button>
+                                }
+                            </p>
+                        </div>
+                    </form>
+                }
+            }
+        </section>
+    </div>
+</div>
+-->
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,153 @@
+﻿@using Tidbeat.Controllers
+@using Tidbeat.Services
+@using Microsoft.AspNetCore.Mvc.Localization;
+@inject IViewLocalizer Localizer;
+@inject ISpotifyService SpotifyService
+@using System.Web
+
+@{
+    ViewData["Title"] = "Bands Page";
+    Console.WriteLine("Total de Items: " + ViewBag.Result.Artists.Items);
+    var gender = TempData["Gener"]?.ToString();
+}
+
+<div>
+    @{
+        await Html.RenderPartialAsync("_Sidebar");
+    }
+</div>
+
+<div class="mt-4 pt-5">
+    <div class="mx-3">
+        <div id="filter" class="pb-2">
+            <div class="display-6 text-primary text-left d-flex w-2">@Localizer["filters"]</div>
+            <div class="d-flex flex-row flex-wrap w-md-100 flex-md-nowrap">
+                <div class="input-group d-flex flex-column px-3 flex-grow-1">
+                    <div class="text-start">@Localizer["name"]:</div>
+                    <input value="@TempData?["Search"]" type="search" id="formSearching" class="w-100 rounded form-control form-outline d-flex flex-row" placeholder="@Localizer["search"]" />
+                </div>
+                <div class="input-group d-flex flex-column px-3 flex-grow-1">
+                    <div class="align-self-start">@Localizer["gender"]:</div>
+                    <div class="form-outline d-flex flex-row">
+                        <select class="form-control w-100" id="formGender" name="formGender">
+                            <!option selected value="">@Localizer["pick_gender"]</!option>
+                            <!option value="rock" @(gender == "rock" ? "selected" : "")>@Localizer["rock"]</!option>
+                            <!option value="pop" @(gender == "pop" ? "selected" : "")>@Localizer["pop"]</!option>
+                            <!option value="kids" @(gender == "kids" ? "selected" : "")>@Localizer["children"]</!option>
+                            <!option value="funk" @(gender == "funk" ? "selected" : "")>@Localizer["funk"]</!option>
+                            <!option value="classical" @(gender == "classical" ? "selected" : "")>@Localizer["classical"]</!option>
+                            <!option value="country" @(gender == "country" ? "selected" : "")>@Localizer["country"]</!option>
+                            <!option value="dance" @(gender == "dance" ? "selected" : "")>@Localizer["dance"]</!option>
+                            <!option value="metal" @(gender == "metal" ? "selected" : "")>@Localizer["metal"]</!option>
+                            <!option value="disco" @(gender == "disco" ? "selected" : "")>@Localizer["disco"]</!option>
+                            <!option value="folk" @(gender == "folk" ? "selected" : "")>@Localizer["folk"]</!option>
+                            <!option value="hip-hop" @(gender == "hip-hop" ? "selected" : "")>@Localizer["hip_hop"]</!option>
+                            <!option value="indian" @(gender == "indian" ? "selected" : "")>@Localizer["indian"]</!option>
+                            <!option value="k-pop" @(gender == "k-pop" ? "selected" : "")>@Localizer["k_pop"]</!option>
+                            <!option value="punk" @(gender == "punk" ? "selected" : "")>@Localizer["punk"]</!option>
+                            <!option value="piano" @(gender == "piano" ? "selected" : "")>@Localizer["piano"]</!option>
+                            <!option value="reggae" @(gender == "reggae" ? "selected" : "")>@Localizer["reggae"]</!option>
+                            <!option value="techno" @(gender == "techno" ? "selected" : "")>@Localizer["techno"]</!option>
+                        </select>
+                    </div>
+                </div>
+                <div class="input-group d-flex flex-column px-3 flex-grow-1 rounded">
+                    <div class="align-self-start">@Localizer["order"]:</div>
+                    <select class="form-control w-100 rounded" id="Ordere" name="Orderby">
+                        <!option value="1" @(TempData["Order"]?.ToString() == "1" ? "selected" : "")>@Localizer["alfabetically_a_to_z"]</!option>
+                        <!option value="2" @(TempData["Order"]?.ToString() == "2" ? "selected" : "")>@Localizer["alfabetically_z_to_a"]</!option>
+                        <!option value="3" @(TempData["Order"]?.ToString() == "3" ? "selected" : "")>@Localizer["more_popular"]</!option>
+                        <!option value="4" @(TempData["Order"]?.ToString() == "4" ? "selected" : "")>@Localizer["less_popular"]</!option>
+                    </select>
+                </div>
+                <div class="align-self-center px-3 pt-3 pt-md-2">
+                    <button class="btn btn-primary">
+                        <img id="imgBand" class="no-padding align-self-center px-3" src="~/images/SearchIcon.png" height="37" width="45" onclick="actualEvent()" />
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="border border-1 border-light-grey my-4"></div>
+        <div>
+            @if (ViewBag.Result.Artists.Items.Count > 0)
+            {
+                <h2 class="d-flex">Bandas e Artistas</h2>
+                @foreach (var item in ViewBag.Result.Artists.Items)
+                {
+                    <a href="@Url.Action("Details", "Bands", new { id = item.Id })" id="@item.Uri" class="hover-background-grey text-decoration-none text-black border-3 border-primary rounded mt-2 d-inline-flex flex-wrap align-content-center mx-2 mx-md-5 w-50 w-sm-25 flex-lg-row flex-column" style="box-shadow: 0 8px 15px -8px rgba(0, 0, 0, 0.4);">
+                            @if (item.Images.Count != 0) {
+                                <img src="@item.Images[0].Url" alt="@item.Name" width="100" height="100">
+                            } else {
+                                <img src="~/images/Empty_Artist_Image.png" alt="@item.Name" width="100" height="100">
+                            }
+                            <div class="text-lg-start text-center justify-content-start align-content-start align-self-center font-weight-bold w-50 flex-column ml-2">
+                                <div class="text-lg-start text-center justify-content-start align-content-start align-self-center font-weight-bold w-100">@item.Name</div>
+                                <div class="text-lg-start text-center justify-content-start align-content-start align-self-center font-weight-bold w-100 opacity-50">
+                                    @if (item.Genres.Count > 0)
+                                    {
+                                        var genreTextStart = Localizer["genders"].Value + ":";
+                                        <div class="flex-column">
+                                            <span class="font-weight-bold">@genreTextStart</span>
+                                            <br/>
+                                            <div class="">
+                                            @for (int i = 0; i < 2; i++) 
+                                            {
+                                                if (item.Genres.Count > i)
+                                                {
+                                                    <div class="px-1">
+                                                        @(" " + item.Genres[i])
+                                                    </div>
+                                                }
+                                                }
+                                            </div>
+                                        </div>
+                                    }</div>
+                            </div>
+                        </a>
+                }
+            }else
+            {
+                <div class="text-danger" id="Danger">@Localizer["no_band"]</div>
+            }
+        </div>
+    </div>
+</div>
+<script>
+        function actualEvent() {
+            let inputOrder = document.getElementById("Ordere");
+            let inputGener = document.getElementById("formGender");
+            let inputSearch = document.getElementById("formSearching");
+            let path = window.location.href.split("?")[0];
+            if (inputSearch.value || inputGener.value || inputOrder.value) {
+                path += "?";
+                let params = new URLSearchParams({
+                    searchKey: inputSearch.value,
+                    gener: inputGener.value,
+                    order: inputOrder.value,
+                })
+                path += params.toString();
+                console.log(window.location.href)
+                window.location.href = path;
+            }
+            event.preventDefault();
+        }
+        document.getElementById("filter").addEventListener("keypress", function (event) {
+            if (event.key === "Enter") {
+                let focusElement = document.activeElement;
+                let inputOrder = document.getElementById("Ordere");
+                let inputGener = document.getElementById("formGender");
+                let inputSearch = document.getElementById("formSearching");
+            if (inputGener === focusElement || inputOrder === focusElement || inputSearch === focusElement) {
+                    //only if one of the elements is higthligthed
+                    event.preventDefault();
+                    actualEvent();
+                }
+            }
+        }
+        )
+</script>
+<style>
+    #imgBand {
+        cursor: pointer;
+    }
+</style>
