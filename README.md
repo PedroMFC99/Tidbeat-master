@@ -4,7 +4,7 @@ Projeto desenvolvido de forma compreensiva com base na aplicação dos conceitos
 
 - Metodologia Agile Scrum,
 - Ferramentas da Atlassian (JIRA e Confluence),
-- Utilização da framework .NET
-- API do Spotify.
-- Azure
+- Utilização da framework .NET,
+- API do Spotify,
+- Azure,
 - etc.
